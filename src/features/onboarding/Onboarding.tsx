@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Starfield } from '../../components/Starfield';
-import { TextAreaField, TextField } from '../../components/Field';
-import { ThemePicker } from '../../components/ThemePicker';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ThemeToggle } from '../../components/layout/ThemeToggle';
+import { PalettePicker } from '../../components/PalettePicker';
+import { Sky } from '../../components/Sky';
+import { Button, Card, Input, Textarea } from '../../components/ui';
 import { toLocalISODate } from '../../lib/dates';
 import {
   LIMITS,
@@ -14,13 +17,12 @@ import {
 } from '../../lib/validation';
 import { ProfileValidationError } from '../../services/profile';
 import { useProfile } from '../../state/ProfileContext';
-import { applyTheme } from '../../theme/applyTheme';
 import { EMPTY_DRAFT, type OnboardingDraft } from '../../types/profile';
 import { STEPS } from './steps';
-import './onboarding.css';
 
-export function Onboarding({ onExit }: { onExit: () => void }) {
-  const { completeOnboarding } = useProfile();
+export default function Onboarding() {
+  const navigate = useNavigate();
+  const { completeOnboarding, previewTheme } = useProfile();
   const [draft, setDraft] = useState<OnboardingDraft>(EMPTY_DRAFT);
   const [index, setIndex] = useState(0);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -31,24 +33,27 @@ export function Onboarding({ onExit }: { onExit: () => void }) {
 
   const step = STEPS[index];
   const isLast = index === STEPS.length - 1;
+  const one = draft.partnerOneName.trim() || 'partner one';
+  const two = draft.partnerTwoName.trim() || 'partner two';
 
+  // Move focus to the step heading so screen readers and keyboard users land in the right place.
   useEffect(() => {
     headingRef.current?.focus({ preventScroll: true });
   }, [index]);
 
   useEffect(() => {
-    applyTheme(draft.theme);
-  }, [draft.theme]);
+    previewTheme(draft.theme);
+  }, [draft.theme, previewTheme]);
+  useEffect(() => () => previewTheme(null), [previewTheme]);
 
   function setField<K extends keyof OnboardingDraft>(key: K, value: OnboardingDraft[K]) {
     setDraft((d) => ({ ...d, [key]: value }));
     if (errors[key]) setErrors(({ [key]: _removed, ...rest }) => rest);
   }
 
-  /** Validate on blur only when the field has content, so Back/Skip clicks never shift layout. */
+  /** Validate on blur only when the field has content, so Back/Skip never shift the layout. */
   function blurCheck(key: keyof OnboardingDraft) {
-    const value = String(draft[key]).trim();
-    if (!value) return;
+    if (!String(draft[key]).trim()) return;
     const message = validateField(key, draft);
     if (message) setErrors((e) => ({ ...e, [key]: message }));
   }
@@ -67,7 +72,7 @@ export function Onboarding({ onExit }: { onExit: () => void }) {
 
   function back() {
     if (saving) return;
-    if (index === 0) onExit();
+    if (index === 0) navigate('/welcome');
     else goTo(index - 1);
   }
 
@@ -103,6 +108,7 @@ export function Onboarding({ onExit }: { onExit: () => void }) {
     setSaveError(null);
     try {
       await completeOnboarding(draft);
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       if (err instanceof ProfileValidationError) {
         const first = STEPS.findIndex((s) => STEP_FIELDS[s.id].some((f) => err.errors[f]));
@@ -117,21 +123,23 @@ export function Onboarding({ onExit }: { onExit: () => void }) {
   const today = toLocalISODate(new Date());
 
   return (
-    <main className="onb">
-      <div className="onb__bg" aria-hidden="true" />
-      <Starfield density={0.7} />
+    <main className="grid min-h-dvh place-items-center px-4 py-10 sm:px-6">
+      <Sky variant="soft" />
 
-      <section className="onb__card" aria-labelledby="onb-title">
-        <header className="onb__header">
-          <p className="onb__progress-text">
+      <Card className="page-enter w-full max-w-xl p-6 sm:p-9" aria-labelledby="onb-title">
+        <header className="flex items-center justify-between gap-4">
+          <p className="eyebrow" aria-live="polite">
             Step {index + 1} of {STEPS.length}
           </p>
-          <ol className="onb__dots" aria-label="Progress">
+          <ol className="flex gap-2" aria-label="Progress">
             {STEPS.map((s, i) => (
               <li
                 key={s.id}
-                className={`onb__dot${i === index ? ' is-current' : i < index ? ' is-done' : ''}`}
                 aria-current={i === index ? 'step' : undefined}
+                className={
+                  'h-1.5 rounded-full transition-all duration-300 ' +
+                  (i === index ? 'w-8 bg-primary' : i < index ? 'w-4 bg-primary/60' : 'w-4 bg-border-strong')
+                }
               >
                 <span className="sr-only">{s.title}</span>
               </li>
@@ -139,123 +147,137 @@ export function Onboarding({ onExit }: { onExit: () => void }) {
           </ol>
         </header>
 
-        <form ref={formRef} onSubmit={onSubmit} noValidate className="onb__form" key={step.id}>
-          <h1 id="onb-title" ref={headingRef} tabIndex={-1} className="onb__title">
-            {step.title}
-          </h1>
-          <p className="onb__hint">{step.hint}</p>
+        <form ref={formRef} onSubmit={onSubmit} noValidate className="mt-7">
+          <div key={step.id} className="step-enter">
+            <h1 id="onb-title" ref={headingRef} tabIndex={-1} className="text-3xl outline-none sm:text-4xl">
+              {step.title}
+            </h1>
+            <p className="mt-2 text-muted">{step.hint}</p>
 
-          {step.id === 'names' && (
-            <div className="onb__fields">
-              <TextField
-                id="partnerOneName"
-                label="Partner one"
-                value={draft.partnerOneName}
-                error={errors.partnerOneName}
-                maxLength={LIMITS.name + 10}
-                autoComplete="off"
-                onChange={(e) => setField('partnerOneName', e.target.value)}
-                onBlur={() => blurCheck('partnerOneName')}
-              />
-              <TextField
-                id="partnerTwoName"
-                label="Partner two"
-                value={draft.partnerTwoName}
-                error={errors.partnerTwoName}
-                maxLength={LIMITS.name + 10}
-                autoComplete="off"
-                onChange={(e) => setField('partnerTwoName', e.target.value)}
-                onBlur={() => blurCheck('partnerTwoName')}
-              />
-            </div>
-          )}
+            <div className="mt-6 flex flex-col gap-5">
+              {step.id === 'names' && (
+                <>
+                  <Input
+                    label="Partner one"
+                    placeholder="First name"
+                    autoComplete="off"
+                    value={draft.partnerOneName}
+                    error={errors.partnerOneName}
+                    onChange={(e) => setField('partnerOneName', e.target.value)}
+                    onBlur={() => blurCheck('partnerOneName')}
+                  />
+                  <Input
+                    label="Partner two"
+                    placeholder="First name"
+                    autoComplete="off"
+                    value={draft.partnerTwoName}
+                    error={errors.partnerTwoName}
+                    onChange={(e) => setField('partnerTwoName', e.target.value)}
+                    onBlur={() => blurCheck('partnerTwoName')}
+                  />
+                </>
+              )}
 
-          {step.id === 'nicknames' && (
-            <div className="onb__fields">
-              <TextField
-                id="partnerOneNickname"
-                label={`Nickname for ${draft.partnerOneName.trim() || 'partner one'}`}
-                optional
-                value={draft.partnerOneNickname}
-                error={errors.partnerOneNickname}
-                maxLength={LIMITS.nickname + 10}
-                autoComplete="off"
-                onChange={(e) => setField('partnerOneNickname', e.target.value)}
-                onBlur={() => blurCheck('partnerOneNickname')}
-              />
-              <TextField
-                id="partnerTwoNickname"
-                label={`Nickname for ${draft.partnerTwoName.trim() || 'partner two'}`}
-                optional
-                value={draft.partnerTwoNickname}
-                error={errors.partnerTwoNickname}
-                maxLength={LIMITS.nickname + 10}
-                autoComplete="off"
-                onChange={(e) => setField('partnerTwoNickname', e.target.value)}
-                onBlur={() => blurCheck('partnerTwoNickname')}
-              />
-            </div>
-          )}
+              {step.id === 'nicknames' && (
+                <>
+                  <Input
+                    label={`What does ${one} like to be called? (optional)`}
+                    placeholder="Nickname"
+                    autoComplete="off"
+                    value={draft.partnerOneNickname}
+                    error={errors.partnerOneNickname}
+                    onChange={(e) => setField('partnerOneNickname', e.target.value)}
+                    onBlur={() => blurCheck('partnerOneNickname')}
+                  />
+                  <Input
+                    label={`What does ${two} like to be called? (optional)`}
+                    placeholder="Nickname"
+                    autoComplete="off"
+                    value={draft.partnerTwoNickname}
+                    error={errors.partnerTwoNickname}
+                    onChange={(e) => setField('partnerTwoNickname', e.target.value)}
+                    onBlur={() => blurCheck('partnerTwoNickname')}
+                  />
+                </>
+              )}
 
-          {step.id === 'story' && (
-            <div className="onb__fields">
-              <TextField
-                id="anniversary"
-                type="date"
-                label="Anniversary"
-                optional
-                hint="The day your story began."
-                min={MIN_ANNIVERSARY}
-                max={today}
-                value={draft.anniversary}
-                error={errors.anniversary}
-                onChange={(e) => setField('anniversary', e.target.value)}
-                onBlur={() => blurCheck('anniversary')}
-              />
-              <TextAreaField
-                id="dedication"
-                label="A short dedication"
-                optional
-                hint="A line or two, just for the two of you."
-                rows={4}
-                value={draft.dedication}
-                error={errors.dedication}
-                counter={`${draft.dedication.length} / ${LIMITS.dedication}`}
-                onChange={(e) => setField('dedication', e.target.value)}
-                onBlur={() => blurCheck('dedication')}
-              />
-            </div>
-          )}
+              {step.id === 'story' && (
+                <>
+                  <Input
+                    label="Anniversary (optional)"
+                    type="date"
+                    min={MIN_ANNIVERSARY}
+                    max={today}
+                    hint="Used to count your days together."
+                    value={draft.anniversary}
+                    error={errors.anniversary}
+                    onChange={(e) => setField('anniversary', e.target.value)}
+                    onBlur={() => blurCheck('anniversary')}
+                  />
+                  <Textarea
+                    label="A short dedication (optional)"
+                    placeholder="A line just for the two of you"
+                    rows={3}
+                    value={draft.dedication}
+                    error={errors.dedication}
+                    hint={`${draft.dedication.trim().length} / ${LIMITS.dedication}`}
+                    onChange={(e) => setField('dedication', e.target.value)}
+                    onBlur={() => blurCheck('dedication')}
+                  />
+                </>
+              )}
 
-          {step.id === 'theme' && (
-            <div className="onb__fields">
-              <ThemePicker value={draft.theme} onChange={(t) => setField('theme', t)} />
+              {step.id === 'theme' && (
+                <>
+                  <PalettePicker
+                    name="onboarding-theme"
+                    legend="Colour theme"
+                    value={draft.theme}
+                    onChange={(t) => setField('theme', t)}
+                  />
+                  <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface-2 px-4 py-3">
+                    <span className="text-sm font-semibold">Light or dark</span>
+                    <ThemeToggle />
+                  </div>
+                  {errors.theme && (
+                    <p role="alert" className="text-sm text-danger">
+                      {errors.theme}
+                    </p>
+                  )}
+                </>
+              )}
             </div>
-          )}
+          </div>
 
           {saveError && (
-            <p role="alert" className="field__error onb__save-error">
+            <p role="alert" className="mt-5 rounded-2xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm">
               {saveError}
             </p>
           )}
 
-          <div className="onb__actions">
-            <button type="button" className="btn btn--ghost" onClick={back} disabled={saving}>
+          <div className="mt-8 flex items-center gap-3">
+            <Button variant="ghost" onClick={back} disabled={saving} leftIcon={<ArrowLeft size={16} />}>
               Back
-            </button>
-            <div className="onb__actions-end">
+            </Button>
+            <div className="ml-auto flex items-center gap-2">
               {step.optional && (
-                <button type="button" className="btn btn--ghost" onClick={skip} disabled={saving}>
+                <Button variant="ghost" onClick={skip} disabled={saving}>
                   Skip
-                </button>
+                </Button>
               )}
-              <button type="submit" className="btn btn--primary" disabled={saving} aria-busy={saving || undefined}>
-                {isLast ? (saving ? 'Saving…' : 'Finish') : 'Next'}
-              </button>
+              {isLast ? (
+                <Button type="submit" loading={saving} leftIcon={<Check size={16} />}>
+                  {saving ? 'Saving…' : 'Finish'}
+                </Button>
+              ) : (
+                <Button type="submit" rightIcon={<ArrowRight size={16} />}>
+                  Next
+                </Button>
+              )}
             </div>
           </div>
         </form>
-      </section>
+      </Card>
     </main>
   );
 }

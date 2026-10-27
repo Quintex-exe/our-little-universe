@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import App from './App';
 import { ToastProvider } from './components/ui';
+import { ProfileProvider } from './state/ProfileContext';
 import { ThemeProvider } from './theme/ThemeProvider';
 import './styles/index.css';
 
@@ -13,9 +14,11 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
       <ToastProvider>
-        <Router>
-          <App />
-        </Router>
+        <ProfileProvider>
+          <Router>
+            <App />
+          </Router>
+        </ProfileProvider>
       </ToastProvider>
     </ThemeProvider>
   </StrictMode>,

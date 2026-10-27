@@ -23,7 +23,7 @@ const draft = {
   partnerOneNickname: '',
   partnerTwoNickname: 'Bear',
   dedication: '  For us  ',
-  theme: 'aurora' as const,
+  theme: 'lavender' as const,
 };
 
 describe('ProfileService + LocalStorageProfileRepository', () => {
@@ -37,7 +37,7 @@ describe('ProfileService + LocalStorageProfileRepository', () => {
     assert.equal(loaded?.partnerTwo.nickname, 'Bear');
     assert.equal(loaded?.anniversary, null);
     assert.equal(loaded?.dedication, 'For us');
-    assert.equal(loaded?.theme, 'aurora');
+    assert.equal(loaded?.theme, 'lavender');
   });
 
   it('rejects invalid drafts without saving', async () => {
@@ -50,9 +50,9 @@ describe('ProfileService + LocalStorageProfileRepository', () => {
   it('updates preferences', async () => {
     const service = new ProfileService(new LocalStorageProfileRepository(fakeStorage()), now);
     await service.completeOnboarding(draft);
-    const next = await service.updatePreferences({ theme: 'ember' });
-    assert.equal(next.theme, 'ember');
-    assert.equal((await service.getProfile())?.theme, 'ember');
+    const next = await service.updatePreferences({ theme: 'gold' });
+    assert.equal(next.theme, 'gold');
+    assert.equal((await service.getProfile())?.theme, 'gold');
   });
 
   it('resets setup', async () => {
@@ -83,7 +83,7 @@ describe('ProfileService + LocalStorageProfileRepository', () => {
       JSON.stringify({ v: 1, data: { partnerOne: { name: 'A' }, partnerTwo: { name: 'B' }, theme: 'neon', anniversary: 'nope' } }),
     );
     const p = await repo.load();
-    assert.equal(p?.theme, 'twilight');
+    assert.equal(p?.theme, 'rose');
     assert.equal(p?.anniversary, null);
   });
 

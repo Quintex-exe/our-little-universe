@@ -1,4 +1,5 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { LoaderCircle } from 'lucide-react';
 import { cn } from '../../lib/cn';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -9,6 +10,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: ButtonSize;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
+  /** Shows a spinner and blocks clicks while work is in progress. */
+  loading?: boolean;
 }
 
 const variants: Record<ButtonVariant, string> = {
@@ -27,7 +30,7 @@ const sizes: Record<ButtonSize, string> = {
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = 'primary', size = 'md', leftIcon, rightIcon, className, children, type = 'button', ...rest },
+  { variant = 'primary', size = 'md', leftIcon, rightIcon, loading, disabled, className, children, type = 'button', ...rest },
   ref,
 ) {
   return (
@@ -41,9 +44,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         sizes[size],
         className,
       )}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       {...rest}
     >
-      {leftIcon}
+      {loading ? <LoaderCircle size={16} className="animate-[spin_0.9s_linear_infinite]" aria-hidden /> : leftIcon}
       {children}
       {rightIcon}
     </button>

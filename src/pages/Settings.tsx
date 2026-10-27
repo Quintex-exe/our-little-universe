@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, Sparkles } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ThemeToggle } from '../components/layout/ThemeToggle';
+import { PalettePicker } from '../components/PalettePicker';
+import { useProfile } from '../state/ProfileContext';
 import { Badge, Button, Card, CardText, CardTitle, Dialog, Input, Textarea, useToast } from '../components/ui';
 
 const palette = [
@@ -17,12 +20,35 @@ const palette = [
 export default function Settings() {
   const [open, setOpen] = useState(false);
   const { notify } = useToast();
+  const navigate = useNavigate();
+  const { profile, updateTheme, resetSetup } = useProfile();
+  const [resetOpen, setResetOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function confirmReset() {
+    setBusy(true);
+    try {
+      await resetSetup();
+      navigate('/welcome', { replace: true });
+    } catch {
+      notify({ tone: 'error', title: 'Couldn’t reset', description: 'Your saved setup could not be cleared. Please try again.' });
+      setBusy(false);
+    }
+  }
+
+  async function pickPalette(id: Parameters<typeof updateTheme>[0]) {
+    try {
+      await updateTheme(id);
+    } catch {
+      notify({ tone: 'error', title: 'Couldn’t save your colour', description: 'Please try again.' });
+    }
+  }
 
   return (
     <div className="flex flex-col gap-10">
       <PageHeader eyebrow="Settings" title="Make it yours" description="Real settings arrive later. For now, this page shows the building blocks." />
 
-      <Card tone="gold">
+      <Card tone="gold" className="flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <CardTitle>Appearance</CardTitle>
@@ -30,7 +56,22 @@ export default function Settings() {
           </div>
           <ThemeToggle />
         </div>
+        {profile && (
+          <PalettePicker name="settings-theme" legend="Colour theme" value={profile.theme} onChange={(t) => void pickPalette(t)} />
+        )}
       </Card>
+
+      {profile && (
+        <Card>
+          <CardTitle>Your setup</CardTitle>
+          <CardText>
+            {profile.partnerOne.name} &amp; {profile.partnerTwo.name}. Saved on this device only.
+          </CardText>
+          <Button variant="secondary" className="mt-5" onClick={() => setResetOpen(true)}>
+            Reset setup
+          </Button>
+        </Card>
+      )}
 
       <section aria-labelledby="ds-palette" className="flex flex-col gap-4">
         <h2 id="ds-palette" className="text-2xl">Palette</h2>
@@ -84,6 +125,19 @@ export default function Settings() {
           </form>
         </Card>
       </section>
+
+      <Dialog
+        open={resetOpen}
+        onClose={() => !busy && setResetOpen(false)}
+        title="Reset your setup?"
+        description="This clears your names, dates and colour from this device, and takes you back to the beginning."
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setResetOpen(false)} disabled={busy}>Keep it</Button>
+            <Button variant="danger" loading={busy} onClick={() => void confirmReset()}>Reset setup</Button>
+          </>
+        }
+      />
 
       <Dialog
         open={open}

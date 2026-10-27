@@ -1,6 +1,5 @@
 import { PlaceholderPage } from '../components/layout/PlaceholderPage';
 
-export const Dashboard = () => <PlaceholderPage path="/dashboard" />;
 export const Garden = () => <PlaceholderPage path="/garden" />;
 export const Memories = () => <PlaceholderPage path="/memories" />;
 export const Timeline = () => <PlaceholderPage path="/timeline" />;

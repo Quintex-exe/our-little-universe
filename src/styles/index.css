@@ -139,7 +139,10 @@
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
+      animation-delay: 0s !important;
+      animation-iteration-count: 1 !important;
     }
+    .rise, .drift, .step-enter, .page-enter { animation: none !important; }
   }
 }
 
@@ -173,3 +176,57 @@
   0%, 100% { opacity: 0.35; transform: scale(0.85); }
   50% { opacity: 1; transform: scale(1); }
 }
+
+/* ---------- Accent palettes (chosen in onboarding; see theme/palettes.ts) ---------- */
+:root[data-palette='lavender'] {
+  --primary: #b8a7d9;
+  --primary-hover: #a894cc;
+  --accent: #d99aa6;
+  --glow-a: rgb(184 167 217 / 0.3);
+  --glow-b: rgb(217 154 166 / 0.2);
+}
+:root[data-palette='sage'] {
+  --primary: #a9b8a0;
+  --primary-hover: #98a98e;
+  --accent: #d9b879;
+  --glow-a: rgb(169 184 160 / 0.32);
+  --glow-b: rgb(217 184 121 / 0.2);
+}
+:root[data-palette='gold'] {
+  --primary: #d9b879;
+  --primary-hover: #cba665;
+  --accent: #b8a7d9;
+  --glow-a: rgb(217 184 121 / 0.3);
+  --glow-b: rgb(184 167 217 / 0.2);
+}
+:root[data-theme='dark'][data-palette='lavender'] { --primary-hover: #c9bbe8; --glow-a: rgb(184 167 217 / 0.16); --glow-b: rgb(217 154 166 / 0.1); }
+:root[data-theme='dark'][data-palette='sage'] { --primary-hover: #bccaaf; --glow-a: rgb(169 184 160 / 0.14); --glow-b: rgb(217 184 121 / 0.1); }
+:root[data-theme='dark'][data-palette='gold'] { --primary-hover: #e6cb93; --glow-a: rgb(217 184 121 / 0.14); --glow-b: rgb(184 167 217 / 0.1); }
+
+/* ---------- Entrance + ambient motion ---------- */
+@layer components {
+  .rise {
+    animation: rise-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--d, 0s);
+  }
+  .drift {
+    animation: drift 14s ease-in-out infinite;
+    animation-delay: var(--d, 0s);
+  }
+  .step-enter {
+    animation: step-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(18px); filter: blur(4px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -14px, 0); }
+}
+@keyframes step-enter {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }

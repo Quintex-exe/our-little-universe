@@ -1,6 +1,7 @@
-export const THEME_IDS = ['twilight', 'aurora', 'ember', 'moonlight'] as const;
+/** Accent palettes. Light/dark mode is a separate, per-device preference (see ThemeProvider). */
+export const THEME_IDS = ['rose', 'lavender', 'sage', 'gold'] as const;
 export type ThemeId = (typeof THEME_IDS)[number];
-export const DEFAULT_THEME: ThemeId = 'twilight';
+export const DEFAULT_THEME: ThemeId = 'rose';
 
 export interface Partner {
   name: string;

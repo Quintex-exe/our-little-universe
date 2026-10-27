@@ -1,28 +1,25 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from './components/layout/AppLayout';
-import {
-  BucketList,
-  Dashboard,
-  Dates,
-  Games,
-  Garden,
-  Memories,
-  Messages,
-  Timeline,
-} from './pages/Placeholders';
+import { ProfileGate } from './components/layout/RouteGuards';
+import { LoadingScreen } from './components/feedback/StatusScreens';
+import { BucketList, Dates, Games, Garden, Memories, Messages, Timeline } from './pages/Placeholders';
 
 const Welcome = lazy(() => import('./pages/Welcome'));
+const Onboarding = lazy(() => import('./features/onboarding/Onboarding'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Settings = lazy(() => import('./pages/Settings'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 export default function App() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<LoadingScreen />}>
       <Routes>
         <Route path="/" element={<Navigate to="/welcome" replace />} />
-        <Route path="/welcome" element={<Welcome />} />
-        <Route element={<AppLayout />}>
+        {/* First-time visitors only; returning couples are sent to the dashboard. */}
+        <Route path="/welcome" element={<ProfileGate needs="no-profile"><Welcome /></ProfileGate>} />
+        <Route path="/onboarding" element={<ProfileGate needs="no-profile"><Onboarding /></ProfileGate>} />
+        <Route element={<ProfileGate needs="profile"><AppLayout /></ProfileGate>}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/garden" element={<Garden />} />
           <Route path="/memories" element={<Memories />} />

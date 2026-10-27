@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { profileService as defaultService, type ProfileService } from '../services/profile';
-import { applyTheme } from '../theme/applyTheme';
+import { applyPalette } from '../theme/palettes';
 import { DEFAULT_THEME, type OnboardingDraft, type Profile, type ThemeId } from '../types/profile';
 
 type Status = 'loading' | 'ready' | 'failed';
@@ -11,6 +11,8 @@ interface ProfileContextValue {
   completeOnboarding(draft: OnboardingDraft): Promise<void>;
   updateTheme(theme: ThemeId): Promise<void>;
   resetSetup(): Promise<void>;
+  /** Temporarily shows a palette (e.g. while choosing in onboarding). Pass null to stop previewing. */
+  previewTheme(theme: ThemeId | null): void;
   retry(): void;
 }
 
@@ -25,6 +27,7 @@ export function ProfileProvider({
 }) {
   const [status, setStatus] = useState<Status>('loading');
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [preview, setPreview] = useState<ThemeId | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -45,9 +48,10 @@ export function ProfileProvider({
     };
   }, [service, attempt]);
 
+  // Single place that decides which palette is on screen.
   useEffect(() => {
-    applyTheme(profile?.theme ?? DEFAULT_THEME);
-  }, [profile]);
+    applyPalette(preview ?? profile?.theme ?? DEFAULT_THEME);
+  }, [preview, profile]);
 
   const completeOnboarding = useCallback(
     async (draft: OnboardingDraft) => setProfile(await service.completeOnboarding(draft)),
@@ -64,7 +68,7 @@ export function ProfileProvider({
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
   const value = useMemo(
-    () => ({ status, profile, completeOnboarding, updateTheme, resetSetup, retry }),
+    () => ({ status, profile, completeOnboarding, updateTheme, resetSetup, previewTheme: setPreview, retry }),
     [status, profile, completeOnboarding, updateTheme, resetSetup, retry],
   );
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
