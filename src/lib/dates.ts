@@ -31,3 +31,16 @@ export function formatLongDate(iso: string, locale?: string): string {
     new Date(Date.UTC(y, m - 1, d)),
   );
 }
+
+export function greetingFor(now: Date = new Date()): string {
+  const h = now.getHours();
+  if (h < 5) return 'Still up';
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  if (h < 22) return 'Good evening';
+  return 'Good night';
+}
+
+export function formatToday(now: Date = new Date(), locale?: string): string {
+  return new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }).format(now);
+}

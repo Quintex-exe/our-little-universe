@@ -116,11 +116,10 @@ await check('palette picks by keyboard and previews live', async () => {
 
 await check('Finish saves and opens the dashboard', async () => {
   await page.getByRole('button', { name: 'Finish' }).click();
-  await page.getByRole('heading', { name: 'Mia & Bear' }).waitFor();
+  await page.getByRole('heading', { name: /Mia & Bear/ }).waitFor();
   assert.equal(path(), '/dashboard');
   await page.getByText('For every ordinary evening.').waitFor();
-  const days = await page.getByTestId('days-together').innerText();
-  assert.match(days, /^[\d,]+$/);
+  await page.getByText(/[\d,]+ days together and counting/).waitFor();
   const data = JSON.parse(await stored());
   assert.equal(data.data.theme, 'sage');
   assert.equal(data.data.partnerOne.name, 'Maya');
@@ -130,11 +129,11 @@ await check('Finish saves and opens the dashboard', async () => {
 
 await check('returning visit goes straight to dashboard with saved palette', async () => {
   await page.goto(base + '/');
-  await page.getByRole('heading', { name: 'Mia & Bear' }).waitFor();
+  await page.getByRole('heading', { name: /Mia & Bear/ }).waitFor();
   assert.equal(path(), '/dashboard');
   assert.equal(await page.evaluate(() => document.documentElement.dataset.palette), 'sage');
   await page.goto(base + '/onboarding');
-  await page.getByRole('heading', { name: 'Mia & Bear' }).waitFor();
+  await page.getByRole('heading', { name: /Mia & Bear/ }).waitFor();
 });
 
 await check('palette can be changed in settings and persists', async () => {
@@ -166,7 +165,7 @@ await check('onboarding works with storage failures (memory fallback)', async ()
   await p2.getByRole('button', { name: 'Skip' }).click();
   await p2.getByRole('button', { name: 'Skip' }).click();
   await p2.getByRole('button', { name: 'Finish' }).click();
-  await p2.getByRole('heading', { name: 'A & B' }).waitFor();
+  await p2.getByRole('heading', { name: /A & B/ }).waitFor();
   await c2.close();
 });
 

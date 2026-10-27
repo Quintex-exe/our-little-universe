@@ -1,29 +1,14 @@
 import type { Profile } from '../../types/profile';
 import { ProfileStorageError, type ProfileRepository } from './ProfileRepository';
 import { SCHEMA_VERSION, parseProfile } from './schema';
+import { resolveBrowserStorage, type StorageLike } from '../storage/browserStorage';
 
 export const STORAGE_KEY = 'our-little-universe:profile';
 
-export interface StorageLike {
-  getItem(key: string): string | null;
-  setItem(key: string, value: string): void;
-  removeItem(key: string): void;
-}
-
-function resolveBrowserStorage(): StorageLike | null {
-  try {
-    const s = globalThis.localStorage;
-    const probe = '__olu_probe__';
-    s.setItem(probe, '1');
-    s.removeItem(probe);
-    return s;
-  } catch {
-    return null;
-  }
-}
+export type { StorageLike };
 
 /**
- * The only place in the app that touches localStorage.
+ * Persists the profile in localStorage (via the shared browser-storage helper).
  * Falls back to in-memory storage (session only) when localStorage is unavailable.
  */
 export class LocalStorageProfileRepository implements ProfileRepository {

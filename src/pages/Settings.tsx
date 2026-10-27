@@ -130,7 +130,7 @@ export default function Settings() {
         open={resetOpen}
         onClose={() => !busy && setResetOpen(false)}
         title="Reset your setup?"
-        description="This clears your names, dates and colour from this device, and takes you back to the beginning."
+        description="This clears your names, dates and colour from this device and takes you back to the beginning. Memories and other saved things stay."
         footer={
           <>
             <Button variant="ghost" onClick={() => setResetOpen(false)} disabled={busy}>Keep it</Button>

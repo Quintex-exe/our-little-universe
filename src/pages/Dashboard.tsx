@@ -1,71 +1,76 @@
-import { Link } from 'react-router-dom';
+import { useMemo } from 'react';
 import { Quote } from 'lucide-react';
-import { PageHeader } from '../components/layout/PageHeader';
-import { Badge, Card, CardText, CardTitle } from '../components/ui';
-import { sections } from '../config/sections';
-import { daysTogether, formatLongDate } from '../lib/dates';
+import { Button } from '../components/ui';
+import { AdventureCard } from '../features/dashboard/AdventureCard';
+import { FeaturedMemory } from '../features/dashboard/FeaturedMemory';
+import { QuickActions } from '../features/dashboard/QuickActions';
+import { StatsGrid } from '../features/dashboard/StatsGrid';
+import { daysTogether, formatToday, greetingFor, toLocalISODate } from '../lib/dates';
+import { computeStats, pickFeaturedMemory } from '../lib/stats';
 import { useProfile } from '../state/ProfileContext';
+import { useUniverse } from '../state/UniverseContext';
+
+const delay = (s: number) => ({ '--d': `${s}s` }) as React.CSSProperties;
 
 export default function Dashboard() {
   const { profile } = useProfile();
+  const { status, data, retry } = useUniverse();
+  const now = new Date();
+  const today = toLocalISODate(now);
+
+  const stats = useMemo(() => computeStats(data, today), [data, today]);
+  const featured = useMemo(() => pickFeaturedMemory(data.memories, today), [data.memories, today]);
+
   if (!profile) return null;
   const { partnerOne, partnerTwo, anniversary, dedication } = profile;
-  const days = anniversary ? daysTogether(anniversary) : null;
   const callOne = partnerOne.nickname ?? partnerOne.name;
   const callTwo = partnerTwo.nickname ?? partnerTwo.name;
-  const explore = sections.filter((s) => !['/dashboard', '/settings'].includes(s.path));
+  const days = anniversary ? daysTogether(anniversary) : null;
+  const loading = status === 'loading';
 
   return (
-    <div className="flex flex-col gap-10">
-      <PageHeader
-        eyebrow="Welcome back"
-        title={`${callOne} & ${callTwo}`}
-        description={`${partnerOne.name} and ${partnerTwo.name}, your little universe is right where you left it.`}
-      />
+    <div className="flex flex-col gap-10 sm:gap-12">
+      <header className="rise">
+        <p className="eyebrow" data-testid="today-date">
+          {formatToday(now)}
+        </p>
+        <h1 className="mt-2 text-4xl sm:text-5xl" data-testid="greeting">
+          {greetingFor(now)}, {callOne} &amp; {callTwo}
+        </h1>
+        <p className="mt-3 text-lg text-muted">
+          {days !== null && days > 0
+            ? `${days.toLocaleString()} ${days === 1 ? 'day' : 'days'} together and counting.`
+            : days === 0
+              ? 'Today is day one.'
+              : 'Your little universe is right where you left it.'}
+        </p>
+        {dedication && (
+          <p className="mt-4 flex max-w-xl items-start gap-2.5 font-serif text-lg leading-snug text-muted">
+            <Quote size={16} aria-hidden className="mt-1.5 shrink-0" />
+            <span className="whitespace-pre-line">{dedication}</span>
+          </p>
+        )}
+      </header>
 
-      {(anniversary || dedication) && (
-        <div className="grid gap-5 md:grid-cols-5">
-          {anniversary && (
-            <Card tone="rose" className={dedication ? 'md:col-span-2' : 'md:col-span-5'}>
-              <p className="eyebrow">Together since {formatLongDate(anniversary)}</p>
-              <p className="mt-3 font-serif text-5xl font-semibold" data-testid="days-together">
-                {days === null ? '—' : days === 0 ? 'Day one' : days.toLocaleString()}
-              </p>
-              {days !== null && days > 0 && <CardText>{days === 1 ? 'day' : 'days'} and counting</CardText>}
-            </Card>
-          )}
-          {dedication && (
-            <Card tone="lavender" className={anniversary ? 'md:col-span-3' : 'md:col-span-5'}>
-              <Quote size={20} className="text-muted" aria-hidden />
-              <blockquote className="mt-3 whitespace-pre-line font-serif text-xl leading-snug sm:text-2xl">
-                {dedication}
-              </blockquote>
-            </Card>
-          )}
+      {status === 'failed' && (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-danger/40 bg-danger/10 px-5 py-4">
+          <p>We couldn’t open your saved data.</p>
+          <Button size="sm" variant="secondary" onClick={retry}>
+            Try again
+          </Button>
         </div>
       )}
 
-      <section aria-labelledby="explore" className="flex flex-col gap-4">
-        <h2 id="explore" className="text-2xl">Around your universe</h2>
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {explore.map(({ path, label, tagline, icon: Icon, accent }) => (
-            <li key={path}>
-              <Link to={path} className="block h-full rounded-card">
-                <Card interactive className="h-full p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="grid size-10 place-items-center rounded-full bg-surface-2">
-                      <Icon size={19} />
-                    </span>
-                    <Badge tone={accent}>Soon</Badge>
-                  </div>
-                  <CardTitle className="mt-4 text-lg">{label}</CardTitle>
-                  <CardText className="text-sm">{tagline}</CardText>
-                </Card>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="rise" style={delay(0.1)}>
+        <QuickActions />
+      </div>
+      <div className="rise" style={delay(0.2)}>
+        <StatsGrid stats={stats} loading={loading} />
+      </div>
+      <div className="rise grid gap-5 lg:grid-cols-2" style={delay(0.3)}>
+        <FeaturedMemory memory={featured} loading={loading} />
+        <AdventureCard />
+      </div>
     </div>
   );
 }
