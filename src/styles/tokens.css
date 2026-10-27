@@ -1,0 +1,66 @@
+:root {
+  --font-display: 'Cormorant Garamond', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --radius-sm: 0.625rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --text: #f3f1fa;
+  --text-muted: #bcb9d2;
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-strong: rgba(255, 255, 255, 0.1);
+  --border: rgba(255, 255, 255, 0.16);
+  --danger: #ffa3b1;
+  --star: #ffffff;
+
+  /* Theme defaults (twilight) */
+  --bg-0: #0b0b1f;
+  --bg-1: #1a1740;
+  --accent: #b9a2ff;
+  --accent-strong: #8f74f0;
+  --accent-contrast: #120d26;
+  --glow: rgba(143, 116, 240, 0.32);
+}
+
+[data-theme='twilight'] {
+  --bg-0: #0b0b1f;
+  --bg-1: #1a1740;
+  --accent: #b9a2ff;
+  --accent-strong: #8f74f0;
+  --accent-contrast: #120d26;
+  --glow: rgba(143, 116, 240, 0.32);
+}
+[data-theme='aurora'] {
+  --bg-0: #061a1a;
+  --bg-1: #0f3a37;
+  --accent: #86e8c9;
+  --accent-strong: #35c9a0;
+  --accent-contrast: #04201a;
+  --glow: rgba(53, 201, 160, 0.28);
+}
+[data-theme='ember'] {
+  --bg-0: #1c0d14;
+  --bg-1: #3a1a28;
+  --accent: #ffb7a0;
+  --accent-strong: #ff8a6b;
+  --accent-contrast: #2a0f08;
+  --glow: rgba(255, 138, 107, 0.26);
+}
+[data-theme='moonlight'] {
+  --bg-0: #0a1424;
+  --bg-1: #17305a;
+  --accent: #a6d0ff;
+  --accent-strong: #5fa8f5;
+  --accent-contrast: #08172b;
+  --glow: rgba(95, 168, 245, 0.28);
+}
