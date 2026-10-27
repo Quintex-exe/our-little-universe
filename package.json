@@ -11,14 +11,18 @@
     "build:offline": "node scripts/offline-build.mjs"
   },
   "dependencies": {
+    "lucide-react": "^1.62.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^22.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "tailwindcss": "^4.3.3",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",
     "vite": "^7.0.0"

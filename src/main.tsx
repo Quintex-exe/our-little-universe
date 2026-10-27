@@ -1,14 +1,19 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-import { ProfileProvider } from './state/ProfileContext';
-import './styles/tokens.css';
-import './styles/global.css';
+import { ToastProvider } from './components/ui';
+import { ThemeProvider } from './theme/ThemeProvider';
+import './styles/index.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ProfileProvider>
-      <App />
-    </ProfileProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ToastProvider>
+    </ThemeProvider>
   </StrictMode>,
 );
